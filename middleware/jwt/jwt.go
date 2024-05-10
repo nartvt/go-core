@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	jwtlib "github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc/metadata"
@@ -355,4 +356,44 @@ func ClientGrpcAuth(ctx context.Context, opts ...Option) (context.Context, error
 	}
 	meta.Set(string(authorizationKey), fmt.Sprintf(string(bearerFormat), tokenStr))
 	return metadata.NewOutgoingContext(ctx, meta), nil
+}
+
+func GeneratorJwtToken(ctx context.Context, userId string) (context.Context, error) {
+	claims := jwtlib.RegisteredClaims{
+		Subject: userId,
+		ExpiresAt: jwtlib.NewNumericDate(
+			time.Now().Add(24 * time.Hour),
+		),
+	}
+	secretKey := os.Getenv("ENV_JWT_SECRET")
+	o := &options{
+		signingMethod: jwtlib.SigningMethodHS256,
+		key:           secretKey,
+		required:      false,
+		claims:        func() jwtlib.Claims { return claims },
+		tokenHeader: map[string]interface{}{
+			"typ": "JWT",
+			"alg": "HS256",
+		},
+		keyFunc: func(token *jwtlib.Token) (interface{}, error) {
+			return []byte(secretKey), nil
+		},
+	}
+
+	token := jwtlib.NewWithClaims(o.signingMethod, o.claims())
+	if o.tokenHeader != nil {
+		for k, v := range o.tokenHeader {
+			token.Header[k] = v
+		}
+	}
+	key, err := o.keyFunc(token)
+	if err != nil {
+		return ctx, ErrMissingKeyFunc
+	}
+	tokenStr, err := token.SignedString(key)
+	if err != nil {
+		return ctx, ErrMissingKeyFunc
+	}
+
+	return context.WithValue(ctx, "accessToken", tokenStr), nil
 }

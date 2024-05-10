@@ -1,6 +1,7 @@
 package uerror
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -42,28 +43,28 @@ func newError(status int64, key string, err error) *StatusError {
 	}
 }
 
-func BadRequestError(err error) *StatusError {
-	return newError(http.StatusBadRequest, BAD_REQUEST, err)
+func BadRequestError(message string) *StatusError {
+	return newError(http.StatusBadRequest, BAD_REQUEST, errors.New(message))
 }
 
-func ParamInvalidError(err error) *StatusError {
-	return newError(http.StatusBadRequest, INPUT_PARAM_INVALID, err)
+func ParamInvalidError(message string) *StatusError {
+	return newError(http.StatusBadRequest, INPUT_PARAM_INVALID, errors.New(message))
 }
 
-func InteralServerError(err error) *StatusError {
-	return newError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR, err)
+func InteralServerError(message string) *StatusError {
+	return newError(http.StatusInternalServerError, INTERNAL_SERVER_ERROR, errors.New(message))
 }
 
-func NotFoundError(err error) *StatusError {
-	return newError(http.StatusNotFound, NOT_FOUND, err)
+func NotFoundError(message string) *StatusError {
+	return newError(http.StatusNotFound, NOT_FOUND, errors.New(message))
 }
 
-func ForbidenError(err error) *StatusError {
-	return newError(http.StatusForbidden, FORBIDEN_ERROR, err)
+func ForbidenError(message string) *StatusError {
+	return newError(http.StatusForbidden, FORBIDEN_ERROR, errors.New(message))
 }
 
-func UnAuthorizeError(err error) *StatusError {
-	return newError(http.StatusUnauthorized, UNAUTHORIZED_ERROR, err)
+func UnAuthorizeError(message string) *StatusError {
+	return newError(http.StatusUnauthorized, UNAUTHORIZED_ERROR, errors.New(message))
 }
 
 func (s *StatusError) Error() string {
